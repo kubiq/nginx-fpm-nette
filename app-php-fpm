@@ -1,0 +1,24 @@
+#!/bin/bash
+
+ # remove user from this system and replace by www-data
+ xUser=`stat -c "%U" /var/www/`
+ if [ "${xUser}" != "UNKNOWN" ] && [ "${xUser}" != "www-data" ] && [ "${xUser}" != "root" ] && [ "${xUser}" != "nobody" ] ; then
+  userdel -f `stat -c "%U" /var/www/` 1>/dev/null 2>/dev/null || :
+ fi
+
+ # remove groupfrom this system and replace by www-data
+ xGroup=`stat -c "%G" /var/www/`
+ if [ "${xGroup}" != "UNKNOWN" ] && [ "${xGroup}" != "www-data" ] && [ "${xGroup}" != "root" ] && [ "${xGroup}" != "nogroup" ] ; then
+  groupmod --gid 64000 `stat -c "%G" /var/www/` 1>/dev/null 2>/dev/null || :
+ fi
+
+ usermod --uid `stat -c "%u" /var/www/` www-data 2>/dev/null \
+  && \
+ groupmod --gid `stat -c "%g" /var/www/` www-data 2>/dev/null \
+  && \
+ chown www-data: /var/run/php/ && /usr/sbin/php-fpm7.0 \
+  && \
+ nginx \
+  && \
+ sleep 356d &
+ wait ${!}
